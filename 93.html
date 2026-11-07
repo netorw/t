@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f2f4f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f131a" media="(prefers-color-scheme: dark)">
-<title>排班日历</title>
+<title>排班日历 - B版(文字染色极简体系)</title>
 <style>
 :root {
   color-scheme: light dark;
@@ -15,6 +15,12 @@
   --mid-bg: #ffedd5;   --mid-fg: #c2410c;
   --night-bg: #312e81; --night-fg: #e0e7ff;
   --rest-bg: #d1fae5;  --rest-fg: #047857;
+
+  /* 人名与班次专用色彩 */
+  --early-color: #0284c7;
+  --mid-color: #ea580c;
+  --night-color: #4f46e5;
+  --rest-color: #059669;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -24,6 +30,11 @@
     --mid-bg: #3b2110;   --mid-fg: #fdba74;
     --night-bg: #2e1d4a; --night-fg: #d8b4fe;
     --rest-bg: #0d3326;  --rest-fg: #6ee7b7;
+
+    --early-color: #7dd3fc;
+    --mid-color: #fdba74;
+    --night-color: #d8b4fe;
+    --rest-color: #6ee7b7;
   }
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -38,12 +49,62 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple
 .tab-btn { flex: 1; min-width: 64px; border: 1px solid var(--line); background: var(--card); color: var(--muted); border-radius: 10px; padding: 8px 4px; font: inherit; font-size: 13px; font-weight: 700; text-align: center; cursor: pointer; white-space: nowrap; }
 .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-/* 排班状态详情卡（沿用原今日排班样式） */
-.hero-date { font-size: 13px; color: var(--muted); margin-bottom: 2px; font-weight: 500; }
-.hero-title { font-size: 19px; font-weight: 800; }
-.hero-badge { padding: 8px 16px; border-radius: 12px; font-size: 15px; font-weight: 800; white-space: nowrap; }
-.all-hero-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
-.all-hero-item { border-radius: 8px; padding: 7px 4px; font-size: 12px; text-align: center; font-weight: 700; }
+/* 排班状态详情卡（居中紧凑布局） */
+.hero-center-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 5vw, 28px);
+  padding: 3px 6px;
+}
+.hero-left { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.hero-date { font-size: 13px; color: var(--muted); font-weight: 500; }
+.hero-subrow { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.hero-name { font-size: 15px; font-weight: 750; color: var(--text); white-space: nowrap; }
+
+.hero-badge { padding: 3px 9px; border-radius: 8px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+.hero-title { font-size: 26px; font-weight: 800; white-space: nowrap; line-height: 1; padding-right: 4px; }
+
+/* 全员总览顶部状态卡：中性底色，文字定班次，容器自适应 */
+.all-hero-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.all-hero-item {
+  container-type: inline-size;
+  border-radius: 10px;
+  padding: 7px 3px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+.all-hero-type {
+  font-size: clamp(12px, 14cqi, 14px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.all-hero-names {
+  font-size: clamp(11.5px, 13cqi, 14px);
+  font-weight: 750;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  letter-spacing: -0.2px;
+}
+.all-hero-item.early-item { color: var(--early-color); }
+.all-hero-item.mid-item   { color: var(--mid-color); }
+.all-hero-item.night-item { color: var(--night-color); }
+
+/* 日历全员模式：纯透底，彩色文字定班次 */
+.day.all-mode .row-shift { background: transparent; }
+.day.all-mode .row-early { color: var(--early-color); }
+.day.all-mode .row-mid   { color: var(--mid-color); }
+.day.all-mode .row-night { color: var(--night-color); }
 
 /* 月历导航与放大间距按钮 */
 .month-wrap { position: relative; display: inline-flex; align-items: center; }
@@ -61,7 +122,7 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
 .weekday { text-align: center; color: var(--muted); font-size: 12px; font-weight: 600; padding: 2px 0 6px; }
 
 /* 日历格子：单人/单组模式 */
-.day { position: relative; min-height: 60px; border-radius: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 4px 1px; cursor: pointer; user-select: none; border: 1.5px solid transparent; }
+.day { position: relative; min-height: 60px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 4px 1px; cursor: pointer; user-select: none; border: 1.5px solid transparent; }
 .day:active { transform: scale(.95); }
 .day .num { font-size: 15px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .day .shift { font-size: 12px; font-weight: 800; line-height: 1.1; }
@@ -74,17 +135,73 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
 .day.all-mode { min-height: 68px; justify-content: flex-start; padding: 3px 1px; background: var(--bg); color: var(--text); gap: 2px; }
 .day.all-mode .num { font-size: 13px; font-weight: 800; line-height: 1.2; margin-bottom: 1px; }
 .day.all-mode .row-shift { width: 94%; border-radius: 4px; font-size: 9.5px; font-weight: 700; line-height: 1.25; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0.5px 0; }
-.day.all-mode .row-early { background: var(--early-bg); color: var(--early-fg); }
-.day.all-mode .row-mid { background: var(--mid-bg); color: var(--mid-fg); }
-.day.all-mode .row-night { background: var(--night-bg); color: var(--night-fg); }
 
 .day.outside { opacity: .26; filter: grayscale(40%); }
 .day.today { border: 2px solid var(--ring); box-shadow: 0 0 0 1.5px var(--inner) inset; }
 .day.today::after { content: "今"; position: absolute; top: 1px; right: 1px; font-size: 9px; line-height: 12px; height: 12px; min-width: 12px; border-radius: 99px; text-align: center; background: var(--ring); color: var(--inner); font-weight: 800; }
 .day.selected:not(.today) { border: 2px dashed var(--accent); }
 
-.section-title { font-size: 15px; font-weight: 800; margin: 0; }
-.attendance { margin-top: 9px; font-size: 13.5px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); border-radius: 11px; padding: 10px 12px; user-select: text; -webkit-user-select: text; font-variant-numeric: tabular-nums; }
+.section-title { font-size: 15px; font-weight: 800; margin: 0; line-height: 1.3; }
+/* 考勤容器：苹果经典内嵌悬浮 */
+.attendance-wrapper {
+  position: relative;
+  margin-top: 10px;
+}
+.attendance {
+  font-size: 13.5px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px 14px;
+  padding-right: 78px;
+  padding-top: 14px;
+  user-select: text;
+  -webkit-user-select: text;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line);
+}
+
+/* 苹果风格半透明胶囊按钮 */
+.apple-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(37, 84, 199, 0.15);
+  color: #3b82f6;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  min-height: unset;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.apple-copy-btn:active {
+  transform: scale(0.92);
+  background: rgba(37, 84, 199, 0.3);
+}
+
+/* 浅色模式下的柔和色调 */
+@media (prefers-color-scheme: light) {
+  .apple-copy-btn {
+    background: rgba(37, 84, 199, 0.08);
+    border-color: rgba(37, 84, 199, 0.18);
+    color: #1d4ed8;
+  }
+  .apple-copy-btn:active {
+    background: rgba(37, 84, 199, 0.18);
+  }
+}
+
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--text); color: var(--card); padding: 9px 15px; border-radius: 99px; font-size: 13px; font-weight: 600; box-shadow: 0 5px 18px rgba(0,0,0,.35); z-index: 10; max-width: calc(100vw - 28px); text-align: center; }
 .hidden { display: none; }
 @media (max-width: 370px) {
@@ -94,6 +211,7 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
   button.iconbtn { padding: 4px 11px; }
   .day { min-height: 56px; }
   .day.all-mode { min-height: 64px; }
+  .copy-btn-side { padding: 0 10px; font-size: 12.5px; }
 }
 </style>
 </head>
@@ -101,21 +219,24 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
 <div class="wrap">
   <!-- 班组切换栏 -->
   <div class="tab-scroll" id="groupTabs">
-    <button class="tab-btn active" data-idx="0">荣/黄</button>
+    <button class="tab-btn" data-idx="0">荣/黄</button>
     <button class="tab-btn" data-idx="1">武/王</button>
     <button class="tab-btn" data-idx="2">盛/张</button>
     <button class="tab-btn" data-idx="3">杨/王</button>
     <button class="tab-btn" data-idx="all">全员总览</button>
   </div>
 
-  <!-- 排班状态卡：未选择时默认今天，点击日历切换为选定日期 -->
+  <!-- 排班状态卡（居中紧凑布局） -->
   <section class="card">
-    <div id="singleHeroWrap" class="row-between">
-      <div>
+    <div id="singleHeroWrap" class="hero-center-row">
+      <div class="hero-left">
         <div class="hero-date" id="heroDate"></div>
-        <div class="hero-title" id="heroShift"></div>
+        <div class="hero-subrow">
+          <span class="hero-name" id="heroName"></span>
+          <span class="hero-badge" id="heroPill"></span>
+        </div>
       </div>
-      <div class="hero-badge" id="heroPill"></div>
+      <div class="hero-title" id="heroShift"></div>
     </div>
     <div id="allHeroWrap" class="hidden">
       <div class="hero-date" id="allHeroDate"></div>
@@ -143,14 +264,18 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
     <div class="calendar" id="calendar"></div>
   </section>
 
-  <!-- 考勤统计卡片（仅单一人员/组时显示） -->
+  <!-- 考勤统计卡片 -->
   <section class="card" id="attendanceCard">
-    <div class="row-between">
-      <h2 class="section-title" id="attendanceTitle"></h2>
-      <button class="primary" id="copyAttendance">复制考勤统计</button>
+    <h2 class="section-title" id="attendanceTitle"></h2>
+    <div class="attendance-wrapper">
+      <div class="attendance" id="attendanceText"></div>
+      <button class="apple-copy-btn" id="copyAttendance" aria-label="复制考勤">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        <span>复制</span>
+      </button>
     </div>
-    <div class="attendance" id="attendanceText"></div>
   </section>
+  
 </div>
 <div id="toast" class="toast hidden" role="status"></div>
 
@@ -176,7 +301,10 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
   ];
 
   const $ = id => document.getElementById(id);
-  let currentGroup = "0";
+
+  // 默认显示班组（0:荣/黄, 1:武/王, 2:盛/张, 3:杨/王, all:全员）
+  let currentGroup = "1";
+
   const now = new Date();
   let shownYear = now.getFullYear(), shownMonth = now.getMonth();
   let selectedISO = null, toastTimer;
@@ -186,18 +314,19 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
   const dayNum = d => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
   const fmtDate = d => `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
 
-  // 计算指定人员在指定日期的班次
-  function getShiftForGroup(d, groupIdx) {
+  // 计算指定人员在指定日期的班次及在3天小周期中的第几天(1..3)
+  function getShiftInfo(d, groupIdx) {
     const diff = dayNum(d) - dayNum(parseISO(ANCHOR_DATE));
     const cycleDay = ((diff + GROUPS[groupIdx].offset) % 12 + 12) % 12;
-    return SHIFT_TYPES[Math.floor(cycleDay / 3)];
+    const shiftType = SHIFT_TYPES[Math.floor(cycleDay / 3)];
+    const dayInShift = (cycleDay % 3) + 1;
+    return { ...shiftType, dayInShift };
   }
 
-  // 计算指定日期下所有班次人员
   function getAllShiftsForDate(d) {
     const res = { early: null, mid: null, night: null, rest: null };
     GROUPS.forEach((g, idx) => {
-      const s = getShiftForGroup(d, idx);
+      const s = getShiftInfo(d, idx);
       res[s.cls] = g;
     });
     return res;
@@ -211,7 +340,6 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
     toastTimer = setTimeout(() => el.classList.add("hidden"), 2200);
   }
 
-  // 渲染排班状态卡（选定日期或默认今天）
   function renderHero() {
     const targetDate = selectedISO ? parseISO(selectedISO) : new Date();
     const dateText = `${fmtDate(targetDate)}（${WEEKS[targetDate.getDay()]}）`;
@@ -222,21 +350,41 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
       $("allHeroDate").textContent = dateText;
       const all = getAllShiftsForDate(targetDate);
       $("allHeroGrid").innerHTML = `
-        <div class="all-hero-item" style="background:var(--early-bg);color:var(--early-fg)">早班<br>${all.early.short}</div>
-        <div class="all-hero-item" style="background:var(--mid-bg);color:var(--mid-fg)">中班<br>${all.mid.short}</div>
-        <div class="all-hero-item" style="background:var(--night-bg);color:var(--night-fg)">夜班<br>${all.night.short}</div>
+        <div class="all-hero-item early-item">
+          <div class="all-hero-type">早班</div>
+          <div class="all-hero-names">${all.early.name}</div>
+        </div>
+        <div class="all-hero-item mid-item">
+          <div class="all-hero-type">中班</div>
+          <div class="all-hero-names">${all.mid.name}</div>
+        </div>
+        <div class="all-hero-item night-item">
+          <div class="all-hero-type">夜班</div>
+          <div class="all-hero-names">${all.night.name}</div>
+        </div>
       `;
     } else {
       $("allHeroWrap").classList.add("hidden");
       $("singleHeroWrap").classList.remove("hidden");
       const g = GROUPS[Number(currentGroup)];
-      const s = getShiftForGroup(targetDate, Number(currentGroup));
-      $("heroDate").textContent = `${dateText} · ${g.name}`;
-      $("heroShift").textContent = s.full;
+      const s = getShiftInfo(targetDate, Number(currentGroup));
+
+      // 第一行：纯日期
+      $("heroDate").textContent = dateText;
+
+      // 第二行：人名（中性白字） + 第几天小胶囊
+      $("heroName").textContent = g.name;
+
       const pill = $("heroPill");
-      pill.textContent = s.full;
+      pill.textContent = `第 ${s.dayInShift} / 3 天`;
       pill.style.background = `var(--${s.cls}-bg)`;
       pill.style.color = `var(--${s.cls}-fg)`;
+
+      // 右侧：班次纯文字染色，无背景底块，透彻极简
+      const shiftEl = $("heroShift");
+      shiftEl.textContent = s.full;
+      shiftEl.style.color = `var(--${s.cls}-color)`;
+      shiftEl.style.background = "transparent";
     }
   }
 
@@ -268,7 +416,7 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
           <div class="row-shift row-night">夜 ${all.night.short}</div>
         `;
       } else {
-        const s = getShiftForGroup(d, Number(currentGroup));
+        const s = getShiftInfo(d, Number(currentGroup));
         cell.className = `day ${s.cls}${inMonth ? "" : " outside"}${iso === todayISO ? " today" : ""}${iso === selectedISO ? " selected" : ""}`;
         cell.innerHTML = `<span class="num">${d.getDate()}</span><span class="shift">${s.name}</span>`;
       }
@@ -298,12 +446,13 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
     const ymTitle = `${shownYear}年${shownMonth+1}月`;
     const daysInMonth = new Date(shownYear, shownMonth + 1, 0, 12).getDate();
 
+    // 标题独占一行：保留人名
     $("attendanceTitle").textContent = `${ymTitle} 考勤（${g.name}）`;
     const ranges = [];
     let rStart = null, prev = null, workDays = 0;
     for (let day = 1; day <= daysInMonth; day++) {
       const d = new Date(shownYear, shownMonth, day, 12);
-      const working = getShiftForGroup(d, gIdx).cls !== "rest";
+      const working = getShiftInfo(d, gIdx).cls !== "rest";
       if (working) {
         workDays++;
         if (!rStart) rStart = d;
@@ -315,7 +464,8 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
     }
     if (rStart) ranges.push([rStart, prev]);
 
-    const lines = [`${ymTitle}考勤统计（${g.name}）`, "出勤日期："];
+    // 复制出的正文内容：纯净无名
+    const lines = [`${ymTitle}考勤统计`, "出勤日期："];
     if (ranges.length) {
       ranges.forEach(([a, b]) => {
         const sA = `${a.getMonth()+1}月${a.getDate()}日`, sB = `${b.getMonth()+1}月${b.getDate()}日`;
@@ -329,7 +479,14 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
     $("attendanceText").textContent = lines.join("\n");
   }
 
+  function syncTabUI() {
+    document.querySelectorAll(".tab-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.idx === currentGroup);
+    });
+  }
+
   function renderAll() {
+    syncTabUI();
     renderHero();
     renderCalendar();
   }
@@ -338,8 +495,6 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
   $("groupTabs").addEventListener("click", e => {
     const btn = e.target.closest(".tab-btn");
     if (!btn) return;
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
     currentGroup = btn.dataset.idx;
     renderAll();
   });
@@ -399,7 +554,7 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
         ok = true;
       }
     } catch (_) {}
-    showToast(ok ? "考勤统计已复制到剪贴板" : "已为您全选文字，请点击弹出的【复制】");
+    showToast(ok ? "考勤已复制到剪贴板" : "已为您全选文字，请点击弹出的【复制】");
   });
 
   renderAll();
