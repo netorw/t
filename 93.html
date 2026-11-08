@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f2f4f8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0f131a" media="(prefers-color-scheme: dark)">
-<title>排班日历 - B版(文字染色极简体系)</title>
+<title>排班日历</title>
 <style>
 :root {
   color-scheme: light dark;
@@ -60,7 +60,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple
 .hero-left { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .hero-date { font-size: 13px; color: var(--muted); font-weight: 500; }
 .hero-subrow { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
-.hero-name { font-size: 15px; font-weight: 750; color: var(--text); white-space: nowrap; }
+.hero-name { font-size: 16px; font-weight: 800; color: var(--text); white-space: nowrap; }
 
 .hero-badge { padding: 3px 9px; border-radius: 8px; font-size: 12px; font-weight: 750; white-space: nowrap; }
 .hero-title { font-size: 26px; font-weight: 800; white-space: nowrap; line-height: 1; padding-right: 4px; }
@@ -87,8 +87,8 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple
   line-height: 1.2;
 }
 .all-hero-names {
-  font-size: clamp(11.5px, 13cqi, 14px);
-  font-weight: 750;
+  font-size: clamp(12px, 14.5cqi, 15px);
+  font-weight: 800;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -285,12 +285,12 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
   const ANCHOR_DATE = "2026-11-08";
   const WEEKS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 
-  // 4 组人员定义
+  // 4 组人员定义（带斜杠间隔符，清晰区分两人）
   const GROUPS = [
-    { name: "荣友生 黄军", short: "荣/黄", offset: 0 },
-    { name: "武雷 王文桢", short: "武/王", offset: 3 },
-    { name: "盛鹏伟 张永兴", short: "盛/张", offset: 6 },
-    { name: "杨咪章 王震", short: "杨/王", offset: 9 }
+    { name: "荣 / 黄", short: "荣/黄", offset: 0 },
+    { name: "武 / 王", short: "武/王", offset: 3 },
+    { name: "盛 / 张", short: "盛/张", offset: 6 },
+    { name: "杨 / 王", short: "杨/王", offset: 9 }
   ];
 
   const SHIFT_TYPES = [
@@ -372,7 +372,7 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
       // 第一行：纯日期
       $("heroDate").textContent = dateText;
 
-      // 第二行：人名（中性白字） + 第几天小胶囊
+      // 第二行：带间隔符的双姓（中性白字加粗） + 第几天小胶囊
       $("heroName").textContent = g.name;
 
       const pill = $("heroPill");
@@ -380,7 +380,7 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
       pill.style.background = `var(--${s.cls}-bg)`;
       pill.style.color = `var(--${s.cls}-fg)`;
 
-      // 右侧：班次纯文字染色，无背景底块，透彻极简
+      // 右侧：班次纯文字染色，无多余底块
       const shiftEl = $("heroShift");
       shiftEl.textContent = s.full;
       shiftEl.style.color = `var(--${s.cls}-color)`;
@@ -446,7 +446,7 @@ button.iconbtn { padding: 4px 14px; font-size: 20px; line-height: 1; min-height:
     const ymTitle = `${shownYear}年${shownMonth+1}月`;
     const daysInMonth = new Date(shownYear, shownMonth + 1, 0, 12).getDate();
 
-    // 标题独占一行：保留人名
+    // 标题独占一行：显示带间隔符的双姓
     $("attendanceTitle").textContent = `${ymTitle} 考勤（${g.name}）`;
     const ranges = [];
     let rStart = null, prev = null, workDays = 0;
